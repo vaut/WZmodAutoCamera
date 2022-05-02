@@ -1,7 +1,8 @@
-setTimer("slide", 500);
+queue("slide", 500);
 queue("changeActor", 400);
-cameraZoom(5000, 150);
+cameraZoom(5000, 300);
 var actor;
+var cameraPosition = {x: mapWidth/2, y: mapHeight/2};
 
 const lifetime = 2*60*1000;
 const dispersionLifetime = 40*1000;
@@ -10,7 +11,17 @@ const dispersionLifetime = 40*1000;
 function slide()
 {
 	let lead = leadPos();
-	cameraSlide(lead.x*128, lead.y*128);
+	let r = dist(lead, cameraPosition);
+	if (r >= 4)
+	{
+		cameraPosition = lead;
+		cameraSlide(cameraPosition.x*128, cameraPosition.y*128);
+		queue("slide", 100*r);
+	}
+	else
+	{
+		queue("slide", 200);
+	}
 }
 
 function leadPos()
@@ -32,7 +43,7 @@ function leadPos()
 function dist(a,b)
 {
 	if (!(a.x && b.x && a.y && b.y)) {return Infinity;}
-	return ((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
+	return (Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2));
 }
 
 function changeActor()
