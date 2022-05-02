@@ -1,3 +1,5 @@
+include("multiplay/script/mods/heatmap.js");
+
 queue("slide", 500);
 queue("changeActor", 400);
 cameraZoom(5000, 300);
