@@ -28,6 +28,7 @@ function slide()
 
 function leadPos()
 {
+	summMap = getSummMap();
 	let droids = enumDroid(actor);
 	let lead = droids.shift();
 	let maxARG = heat(lead, summMap);
@@ -61,7 +62,7 @@ function changeActor()
 	{
 		queue("changeActor", time);
 		actor = newActor;
-		summMap = getSummMap();
+		updateStructsMap();
 		return;
 	}
 	else

@@ -1,12 +1,16 @@
-include("multiplay/script/mods/queue.js");
-//var rawMap = [];
+include("multiplay/script/mods/queue2.js");
+var rawMap;
+createRawMap();
 var summMap = initMap();
+var newCells = new Queue();
 
-//var structsMap = [];
+var structsMap = [];
+queue("updateStructsMap", 100);
+//setTimer("updateStructsMap", 45*1000);
 //var unitsMap = [];
 //var oilsMap = [];
-createRawMap();
 //dumpMap(createMap(startPositions[1]));
+
 
 function initMap(value = undefined)
 {
@@ -46,18 +50,19 @@ function createRawMap()
 function createMap(obj, lim = Infinity)
 {
 	let map = initMap(Infinity);
-	var newCells = new Queue();
+	newCells.reset();
 	newCells.add(obj);
 	map[obj.x][obj.y]=1;
 	while (!newCells.isEmpty())
 	{
-		let p = newCells.get();
-		if (map[p.x][p.y] > lim){break;}
-		rawMap[p.x][p.y].forEach((c) =>
+		let {x:x, y:y} = newCells.get();
+		let v = map[x][y]+1;
+		if (v > lim){break;}
+		rawMap[x][y].forEach((c) =>
 		{
-			if (map[c.x][c.y]> map[p.x][p.y] +1 )
+			if (map[c.x][c.y] > v )
 			{
-				map[c.x][c.y] = map[p.x][p.y]+1;
+				map[c.x][c.y] = v;
 				newCells.add(c);
 			}
 		});
@@ -66,6 +71,48 @@ function createMap(obj, lim = Infinity)
 }
 
 function getSummMap()
+{
+	unitsMap =  getUnitMap();
+	summMap = structsMap.map((line, x) =>
+	{
+		const rawLine = line.map((cell, y) =>
+		{
+			return structsMap[x][y]+unitsMap[x][y];
+
+		});
+		return rawLine;
+	});
+	return summMap;
+}
+
+function getUnitMap()
+{
+	let units = [];
+	getEnemys().forEach((playnum) =>
+	{
+		units = units.concat(enumDroid(playnum));
+	});
+	unitsMap = initMap(0);
+	units = units.filter((obj) =>
+	{
+		return (obj.weapons[0] && gameTime - obj.weapons[0].lastFired <  15*1000);
+	});
+	debug(units.length);
+	units.forEach((obj) =>
+	{
+		let map = createMap(obj, 20);
+		map.forEach((line, x) =>
+		{
+			line.forEach((r,y) =>
+			{
+				unitsMap[x][y] += 1/(r**2);
+			});
+		});
+	});
+	return unitsMap;
+}
+
+function updateStructsMap()
 {
 	let structs = [];
 	let units = [];
@@ -78,13 +125,13 @@ function getSummMap()
 			//POWER_GEN,
 			//RESOURCE_EXTRACTOR,
 			LASSAT,
-			RESEARCH_LAB,
-			REPAIR_FACILITY,
+			//RESEARCH_LAB,
+			//REPAIR_FACILITY,
 			CYBORG_FACTORY,
 			VTOL_FACTORY,
 			//REARM_PAD,
-			SAT_UPLINK,
-			COMMAND_CONTROL,
+			//SAT_UPLINK,
+			//COMMAND_CONTROL,
 		];
 		for (let i = 0; i < types.length; ++i)
 		{
@@ -92,7 +139,7 @@ function getSummMap()
 		}
 		units = units.concat(enumDroid(playnum));
 	});
-	let summMap = initMap(0);
+	structsMap = initMap(0);
 	structs.forEach((obj) =>
 	{
 		let map = createMap(obj);
@@ -100,24 +147,11 @@ function getSummMap()
 		{
 			line.forEach((r,y) =>
 			{
-				summMap[x][y] += 1/r;
+				structsMap[x][y] += 1/r;
 			});
 		});
 	});
-	units.forEach((obj) =>
-	{
-		let map = createMap(obj, 16);
-		map.forEach((line, x) =>
-		{
-			line.forEach((r,y) =>
-			{
-				summMap[x][y] += 1/(r);
-			});
-		});
-	});
-	return summMap;
 }
-
 
 function getEnemys()
 {
