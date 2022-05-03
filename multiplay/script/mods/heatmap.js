@@ -3,9 +3,8 @@ var summMap = [];
 var structsMap = [];
 //var unitsMap = [];
 //var oilsMap = [];
-
 createRawMap();
-dumpMap(createMap(startPositions[1]));
+//dumpMap(createMap(startPositions[1]));
 
 function initMap(value = undefined)
 {
@@ -46,7 +45,7 @@ function createRawMap()
 	});
 }
 
-function createMap(obj)
+function createMap(obj, lim = Infinity)
 {
 	let map = initMap(0);
 	let newCells = [obj];
@@ -54,6 +53,7 @@ function createMap(obj)
 	while (newCells.length > 0)
 	{
 		let p = newCells.shift();
+//		if (map[p.x][p.y] > lim){break;}
 		rawMap[p.x][p.y].forEach((c) =>
 		{
 			if (map[c.x][c.y]===0)
@@ -66,6 +66,74 @@ function createMap(obj)
 	return map;
 }
 
+function getSummMap()
+{
+	let structs = [];
+	let units = [];
+	getEnemys().forEach((playnum) =>
+	{
+		structs.push(startPositions[playnum]);
+		let types = [
+			HQ,
+			FACTORY,
+			//POWER_GEN,
+			//RESOURCE_EXTRACTOR,
+			LASSAT,
+			RESEARCH_LAB,
+			REPAIR_FACILITY,
+			CYBORG_FACTORY,
+			VTOL_FACTORY,
+			//REARM_PAD,
+			SAT_UPLINK,
+			COMMAND_CONTROL,
+		];
+		for (let i = 0; i < types.length; ++i)
+		{
+			structs = structs.concat(enumStruct(playnum, types[i]));
+		}
+		units = units.concat(enumDroid(playnum));
+	});
+	let summMap = initMap(1);
+	structs.forEach((obj) =>
+	{
+		let map = createMap(obj);
+		map.forEach((line, x) =>
+		{
+			line.forEach((r,y) =>
+			{
+				summMap[x][y] += 1/r;
+			});
+		});
+	});
+	units.forEach((obj) =>
+	{
+		let map = createMap(obj, 16);
+		map.forEach((line, x) =>
+		{
+			line.forEach((r,y) =>
+			{
+				summMap[x][y] += 1/r;
+			});
+		});
+	});
+
+	return summMap;
+}
+
+
+function getEnemys()
+{
+	enemys = [];
+	for (let playNum = 0; playNum < maxPlayers; ++playNum)
+	{
+		if (playersTeam[playNum] != playersTeam[actor])
+		{
+			enemys.push(playNum);
+		}
+	}
+	return enemys;
+}
+
 function isPassable(x, y)
 {
 	//TODO добавить проверку есть ли тут объект
@@ -74,7 +142,6 @@ function isPassable(x, y)
 		terrainType(x, y) !== TER_CLIFFFACE && terrainType(x, y) !== TER_WATER
 	);
 }
-
 
 function dumpMap(map)
 {

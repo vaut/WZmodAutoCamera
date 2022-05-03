@@ -30,13 +30,13 @@ function leadPos()
 {
 	let droids = enumDroid(actor);
 	let lead = droids.shift();
-	let minARG = dist(lead, startPositions[actor]);
+	let minARG = heat(lead, map);
 	droids.forEach((droid) =>
 	{
-		if (dist(droid, startPositions[actor]) >= minARG)
+		if (heat(droid, map) <= minARG)
 		{
 			lead = droid;
-			minARG = dist(droid, startPositions[actor]);
+			minARG = heat(droid, map);
 		}
 	});
 	return lead;
@@ -48,6 +48,11 @@ function dist(a,b)
 	return (Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2));
 }
 
+function heat(o, map)
+{
+	return map[o.x][o.y];
+}
+
 function changeActor()
 {
 	let time = lifetime + dispersionLifetime*(Math.random() - 0.5 );
@@ -56,6 +61,7 @@ function changeActor()
 	{
 		queue("changeActor", time);
 		actor = newActor;
+		var map = getSummMap();
 		return;
 	}
 	else
