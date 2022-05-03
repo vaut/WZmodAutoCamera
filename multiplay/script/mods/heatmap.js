@@ -1,6 +1,8 @@
-var rawMap = [];
-var summMap = [];
-var structsMap = [];
+include("multiplay/script/mods/queue.js");
+//var rawMap = [];
+var summMap = initMap();
+
+//var structsMap = [];
 //var unitsMap = [];
 //var oilsMap = [];
 createRawMap();
@@ -11,11 +13,7 @@ function initMap(value = undefined)
 	map = [];
 	for (let x = 0; x < mapWidth; ++x)
 	{
-		map[x] = Array(mapHeight);
-		for (let y = 0; y < mapHeight; ++y)
-		{
-			map[x][y] = value;
-		}
+		map[x] = Array(mapHeight).fill(value);
 	}
 	return map;
 }
@@ -47,19 +45,20 @@ function createRawMap()
 
 function createMap(obj, lim = Infinity)
 {
-	let map = initMap(0);
-	let newCells = [obj];
+	let map = initMap(Infinity);
+	var newCells = new Queue();
+	newCells.add(obj);
 	map[obj.x][obj.y]=1;
-	while (newCells.length > 0)
+	while (!newCells.isEmpty())
 	{
-		let p = newCells.shift();
-//		if (map[p.x][p.y] > lim){break;}
+		let p = newCells.get();
+		if (map[p.x][p.y] > lim){break;}
 		rawMap[p.x][p.y].forEach((c) =>
 		{
-			if (map[c.x][c.y]===0)
+			if (map[c.x][c.y]> map[p.x][p.y] +1 )
 			{
 				map[c.x][c.y] = map[p.x][p.y]+1;
-				newCells.push(c);
+				newCells.add(c);
 			}
 		});
 	}
@@ -93,7 +92,7 @@ function getSummMap()
 		}
 		units = units.concat(enumDroid(playnum));
 	});
-	let summMap = initMap(1);
+	let summMap = initMap(0);
 	structs.forEach((obj) =>
 	{
 		let map = createMap(obj);
@@ -112,11 +111,10 @@ function getSummMap()
 		{
 			line.forEach((r,y) =>
 			{
-				summMap[x][y] += 1/r;
+				summMap[x][y] += 1/(r);
 			});
 		});
 	});
-
 	return summMap;
 }
 

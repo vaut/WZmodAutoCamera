@@ -30,13 +30,13 @@ function leadPos()
 {
 	let droids = enumDroid(actor);
 	let lead = droids.shift();
-	let minARG = heat(lead, map);
+	let maxARG = heat(lead, summMap);
 	droids.forEach((droid) =>
 	{
-		if (heat(droid, map) <= minARG)
+		if (heat(droid, summMap) >= maxARG)
 		{
 			lead = droid;
-			minARG = heat(droid, map);
+			maxARG = heat(droid, summMap);
 		}
 	});
 	return lead;
@@ -61,7 +61,7 @@ function changeActor()
 	{
 		queue("changeActor", time);
 		actor = newActor;
-		var map = getSummMap();
+		summMap = getSummMap();
 		return;
 	}
 	else
